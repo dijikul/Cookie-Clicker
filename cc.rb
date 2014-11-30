@@ -17,9 +17,9 @@ require 'watir-webdriver'
 $b = Watir::Browser.start('http://orteil.dashnet.org/cookieclicker/')
 
 $cookies = Hash.new
-
+$stats = Hash.new
 $cookie = $b.div(:id, 'bigCookie')
-
+upname = nil
 # initialize our available upgrades hash
 upgrades = Hash.new
 
@@ -42,11 +42,12 @@ end
 ###################
 #      CHEATS     #
 ###################
-
+$b.execute_script("var autoClicker;")
 def ac(int) # auto cLicker
-	$b.execute_script("var autoClicker = setInterval(Game.ClickCookie, #{int});")	
+	$b.execute_script("autoClicker = setInterval(Game.ClickCookie, #{int});")	
 end
-def aco # auto click off. Doesn't work for some reason. Debug
+def aco # auto click off
+	# Thg Doesn't actually work for some reason. need to debug
 	$b.execute_script('clearInterval(autoClicker);')
 end
 
@@ -78,16 +79,20 @@ def checkupgrades
 		# I'm not sure how to get the Powerup name here, because it's
 		# assigned via the onmouseover event handler.  Does Watir let us
 		# Target that?
-		puts $powerups[0].div
-		puts "Purchasing Powerup after "+ (Time.now - $initTime).to_s + " seconds!"
+		$stats["powerup"] = $stats["powerup"].to_i + 1
+		puts "Purchasing powerup number " + $stats["powerup"].to_s + " after " + (Time.now - $initTime).to_s + " seconds!"
 		$powerups[0].click if $powerups[0].exists?
 	end
 
 	# New upgrades algo
 	if $upgrades.size >= 1 then
 		w = $upgrades.size - 1
-		puts "Purchasing #{$upgrades[w].div(:class, /title/).text} for #{$upgrades[w].span(:class, /price/).text} cookies after " + (Time.now - $initTime).to_s + " seconds!"
+		upname = $upgrades[w].div(:class, /title/).text
+		upprice = $upgrades[w].span(:class, /price/).text.to_s
+		$stats["#{upname}"] = $stats["#{upname}"].to_i + 1
+		puts "Purchasing #{upname} number #{$stats[upname]} for #{upprice} cookies after " + (Time.now - $initTime).to_s + " seconds!"
 		$upgrades[w].click if $upgrades[w].exists?
+		
 	end
 end
 
