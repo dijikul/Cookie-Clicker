@@ -11,7 +11,7 @@
 
 #puts "Enter your Cookie-Click delay in milliseconds: "
 #int = gets.chomp
-int = 5
+int = 250
 puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
@@ -57,7 +57,13 @@ end
 
 
 def timenow
-	return "[" + sprintf('%.2f',(Time.now - $initTime)) + "] :: "
+	if ( (Time.now - $initTime).to_i > 3600 )
+		return "[" + (sprintf('%.2f',(Time.now - $initTime)) / 3600 ) + "h] :: "
+	elseif ( (Time.now - $initTime).to_i > 60 )
+		return "[" + (sprintf('%.2f',(Time.now - $initTime)) / 60 ) + "m] :: "
+	else
+		return "[" + sprintf('%.2f',(Time.now - $initTime)) + "s] :: "
+	end
 end
 
 
@@ -71,10 +77,10 @@ def checkupgrades
 	# Check for popped-open achievements (and log them)		
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		achieved = $b.divs(:class, 'framed note haspic hasdesc')
-		title = achieved[0].div(:class, /title/).text.to_s
-		puts timenow + "Achievement unlocked: " + title.to_s
+		title = achieved[0].div(:class, /title/).text.to_s if achieved[0].div(:class, /title/).exists?
+		puts timenow + "Achievement unlocked: " + title.upcase
 		#$b.execute_script('Game.CloseNotes()') 
-		achieved[0].div(:class, /close/).click
+		achieved[0].div(:class, /close/).click if achieved[0].div(:class, /close/).exists?
 	end
 	# Are there any available upgrades?	
 	$upgrades = $b.divs(:class, 'product unlocked enabled')
@@ -93,7 +99,7 @@ def checkupgrades
 		decoded_mouseover = CGI::unescape( mouseover )
 		# strip the name element
 		powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1]
-		puts timenow + "Power-up " + $stats["powerup"].to_s + ": " + powerup_name + " purchased!"
+		puts timenow + "Power up " + $stats["powerup"].to_s + ": " + powerup_name.upcase + " purchased!"
 		$powerups[0].click if $powerups[0].exists?
 	end
 
@@ -103,7 +109,7 @@ def checkupgrades
 		upname = $upgrades[w].div(:class, /title/).text if $upgrades[w].div(:class, /title/).exists?
 		upprice = $upgrades[w].span(:class, /price/).text.to_s if $upgrades[w].span(:class, /price/).exists?
 		$stats["#{upname}"] = $stats["#{upname}"].to_i + 1
-		puts timenow + "Purchasing #{upname} number #{$stats[upname]} for #{upprice} cookies"
+		puts timenow + "Purchasing #{upname.upcase} number #{$stats[upname]} for #{upprice} cookies"
 		$upgrades[w].click if $upgrades[w].exists?
 		
 	end
