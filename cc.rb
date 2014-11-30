@@ -93,7 +93,7 @@ def checkupgrades
 		decoded_mouseover = CGI::unescape( mouseover )
 		# strip the name element
 		powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1]
-		puts timenow + " Power-up " + $stats["powerup"].to_s + ": " + powerup_name + " purchased!"
+		puts timenow + "Power-up " + $stats["powerup"].to_s + ": " + powerup_name + " purchased!"
 		$powerups[0].click if $powerups[0].exists?
 	end
 
