@@ -11,7 +11,7 @@
 
 #puts "Enter your Cookie-Click delay in milliseconds: "
 #int = gets.chomp
-int = 250
+int = 100
 puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
@@ -24,7 +24,6 @@ $stats = Hash.new
 $cookie = $b.div(:id, 'bigCookie')
 $initTime = Time.now
 upname = nil
-# initialize our available upgrades hash
 upgrades = Hash.new
 
 def click(howManyTimes = 1)
@@ -57,13 +56,18 @@ end
 
 
 def timenow
-	if ( (Time.now - $initTime).to_i > 3600 )
-		return "[" + (sprintf('%.2f',(Time.now - $initTime)) / 3600 ) + "h] :: "
-	elseif ( (Time.now - $initTime).to_i > 60 )
-		return "[" + (sprintf('%.2f',(Time.now - $initTime)) / 60 ) + "m] :: "
-	else
-		return "[" + sprintf('%.2f',(Time.now - $initTime)) + "s] :: "
-	end
+	# Try and make it display proper minutes / hours if left running
+	seconds = (Time.now - $initTime).to_f
+	minutes = (seconds/60)
+	hours = (seconds/3600)
+	
+=begin
+	puts sprintf('%.2f', seconds) + "s"
+	puts sprintf('%.2f', minutes) + "m"
+	puts sprintf('%.2f', hours) + "h"
+=end
+	minutes > 1 ? "[ " + minutes.to_i.to_s + "m " + (seconds.to_i - (minutes.to_i * 60)).to_s.rjust(2, '0') + "s ] :: "  : "[ " + sprintf('%.1f', seconds) + "s ] :: "
+
 end
 
 
@@ -74,11 +78,11 @@ def checkupgrades
 
 	update_stats
 
-	# Check for popped-open achievements (and log them)		
+	# Achievements		
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		achieved = $b.divs(:class, 'framed note haspic hasdesc')
 		title = achieved[0].div(:class, /title/).text.to_s if achieved[0].div(:class, /title/).exists?
-		puts timenow + "Achievement unlocked: " + title.upcase
+		puts (timenow + "Achievement unlocked: " + title) if title
 		#$b.execute_script('Game.CloseNotes()') 
 		achieved[0].div(:class, /close/).click if achieved[0].div(:class, /close/).exists?
 	end
@@ -92,24 +96,32 @@ def checkupgrades
 
 	# If there are powerups, buy them
 	if $powerups.size >= 1 then
+		# Increment powerup count
 		$stats["powerup"] = $stats["powerup"].to_i + 1
-
+		# powerup name is stored in tooltip, assigned by mouseover
 		mouseover = $powerups[0].onmouseover if $powerups[0].exists?
 		# decode onmouseoer text
-		decoded_mouseover = CGI::unescape( mouseover )
-		# strip the name element
-		powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1]
-		puts timenow + "Power up " + $stats["powerup"].to_s + ": " + powerup_name.upcase + " purchased!"
+		decoded_mouseover = CGI::unescape( mouseover ) if mouseover
+		# extract the name element
+		powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1] if decoded_mouseover
+		# log the powerup we're purchasing
+		puts timenow + "Power up #" + $stats["powerup"].to_s + ": '" + powerup_name + "' purchased!"
+		# ...and click it to actually do the thing we said we just did.
 		$powerups[0].click if $powerups[0].exists?
 	end
 
 	# New upgrades algo
 	if $upgrades.size >= 1 then
+		# grab the largest available powerup index, with the thinking
+		# being that the more-advanced powerup will have larger yield,
+		# so purchase it first if there are more than one available.
 		w = $upgrades.size - 1
 		upname = $upgrades[w].div(:class, /title/).text if $upgrades[w].div(:class, /title/).exists?
 		upprice = $upgrades[w].span(:class, /price/).text.to_s if $upgrades[w].span(:class, /price/).exists?
+		
+		# increment this powerup's counter
 		$stats["#{upname}"] = $stats["#{upname}"].to_i + 1
-		puts timenow + "Purchasing #{upname.upcase} number #{$stats[upname]} for #{upprice} cookies"
+		puts timenow + "Purchased '#{upname}' number #{$stats[upname]} for #{upprice} cookies"
 		$upgrades[w].click if $upgrades[w].exists?
 		
 	end
