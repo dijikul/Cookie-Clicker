@@ -15,12 +15,14 @@ int = 5
 puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
+require 'cgi'
 
 $b = Watir::Browser.start('http://orteil.dashnet.org/cookieclicker/')
 
 $cookies = Hash.new
 $stats = Hash.new
 $cookie = $b.div(:id, 'bigCookie')
+$initTime = Time.now
 upname = nil
 # initialize our available upgrades hash
 upgrades = Hash.new
@@ -54,23 +56,23 @@ def aco # auto click off
 end
 
 
+def timenow
+	return "[" + sprintf('%.2f',(Time.now - $initTime)) + "] :: "
+end
 
 
 # Get number of potential upgrades (varies by game version)
 # subtract 1 - indexes start at 0
 def checkupgrades
-	# Check available upgrades
-	# Store values (data structure?)
+
+
 	update_stats
-	# Check for popped-open achievements (and close them)
-	# Game.CloseNotes() to close all
-	#old way
-	#if $b.div(:class, 'framed close sidenote').exists?
-	
+
+	# Check for popped-open achievements (and log them)		
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		achieved = $b.divs(:class, 'framed note haspic hasdesc')
 		title = achieved[0].div(:class, /title/).text.to_s
-		puts "Achievement unlocked: " + title.to_s
+		puts timenow + "Achievement unlocked: " + title.to_s
 		#$b.execute_script('Game.CloseNotes()') 
 		achieved[0].div(:class, /close/).click
 	end
@@ -79,27 +81,29 @@ def checkupgrades
 	$powerups = $b.divs(:class, 'crate upgrade enabled')
 
 
-	# Purchase the first available upgrade:
-	#$b.divs(:class, 'product unlocked enabled').first.click
+	# Refresh money
 	update_stats
 
-	# Purchase any powerups
+	# If there are powerups, buy them
 	if $powerups.size >= 1 then
-		# I'm not sure how to get the Powerup name here, because it's
-		# assigned via the onmouseover event handler.  Does Watir let us
-		# Target that?
 		$stats["powerup"] = $stats["powerup"].to_i + 1
-		puts "Purchasing powerup number " + $stats["powerup"].to_s + " at " + sprintf('%.2f',(Time.now - $initTime)) + " seconds after start!"
+
+		mouseover = $powerups[0].onmouseover if $powerups[0].exists?
+		# decode onmouseoer text
+		decoded_mouseover = CGI::unescape( mouseover )
+		# strip the name element
+		powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1]
+		puts timenow + " Power-up " + $stats["powerup"].to_s + ": " + powerup_name + " purchased!"
 		$powerups[0].click if $powerups[0].exists?
 	end
 
 	# New upgrades algo
 	if $upgrades.size >= 1 then
 		w = $upgrades.size - 1
-		upname = $upgrades[w].div(:class, /title/).text
-		upprice = $upgrades[w].span(:class, /price/).text.to_s
+		upname = $upgrades[w].div(:class, /title/).text if $upgrades[w].div(:class, /title/).exists?
+		upprice = $upgrades[w].span(:class, /price/).text.to_s if $upgrades[w].span(:class, /price/).exists?
 		$stats["#{upname}"] = $stats["#{upname}"].to_i + 1
-		puts "Purchasing #{upname} number #{$stats[upname]} for #{upprice} cookies at " + sprintf('%.2f',(Time.now - $initTime)) + " seconds after start!"
+		puts timenow + "Purchasing #{upname} number #{$stats[upname]} for #{upprice} cookies"
 		$upgrades[w].click if $upgrades[w].exists?
 		
 	end
@@ -132,9 +136,9 @@ end
 
 
 # call the auto-clicker method
-$initTime = Time.now
+
 ac(int)
-puts "Cookie clicker initialized at " + $initTime.to_s
+puts timenow + "Cookie clicker initialized at " + $initTime.to_s
 #define main upgrade loop
 def gobot
 	loop do
