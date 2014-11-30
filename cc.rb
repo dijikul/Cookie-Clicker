@@ -1,10 +1,12 @@
+#############################
+# Ruby Watir Cookie Clicker #
+#############################
 #
-# Ruby Watir Cookie Clicker
+# Requires watir-webdriver 
 #
-# Requires watir-webdriver
+# 2014 by jenksy 
 #
-# 
-#
+#############################
 
 
 #puts "Enter your Cookie-Click delay in milliseconds: "
@@ -80,7 +82,7 @@ def checkupgrades
 		# assigned via the onmouseover event handler.  Does Watir let us
 		# Target that?
 		$stats["powerup"] = $stats["powerup"].to_i + 1
-		puts "Purchasing powerup number " + $stats["powerup"].to_s + " after " + (Time.now - $initTime).to_s + " seconds!"
+		puts "Purchasing powerup number " + $stats["powerup"].to_s + " after " + (Time.now - $initTime).to_s + " seconds since init!"
 		$powerups[0].click if $powerups[0].exists?
 	end
 
@@ -90,7 +92,7 @@ def checkupgrades
 		upname = $upgrades[w].div(:class, /title/).text
 		upprice = $upgrades[w].span(:class, /price/).text.to_s
 		$stats["#{upname}"] = $stats["#{upname}"].to_i + 1
-		puts "Purchasing #{upname} number #{$stats[upname]} for #{upprice} cookies after " + (Time.now - $initTime).to_s + " seconds!"
+		puts "Purchasing #{upname} number #{$stats[upname]} for #{upprice} cookies after " + (Time.now - $initTime).to_s + " seconds since init!"
 		$upgrades[w].click if $upgrades[w].exists?
 		
 	end
@@ -125,7 +127,7 @@ end
 # call the auto-clicker method
 $initTime = Time.now
 ac(int)
-puts "CookieBot initialized @ " + $initTime.to_s
+puts "Cookie clicker initialized at " + $initTime.to_s
 #define main upgrade loop
 def gobot
 	loop do
