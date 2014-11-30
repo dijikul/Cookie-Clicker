@@ -12,7 +12,7 @@
 #puts "Enter your Cookie-Click delay in milliseconds: "
 #int = gets.chomp
 int = 5
-puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay."
+puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
 
@@ -64,8 +64,15 @@ def checkupgrades
 	update_stats
 	# Check for popped-open achievements (and close them)
 	# Game.CloseNotes() to close all
-	if $b.div(:class, 'framed close sidenote').exists?
-		$b.execute_script('Game.CloseNotes()') 
+	#old way
+	#if $b.div(:class, 'framed close sidenote').exists?
+	
+	if $b.div(:class, 'framed note haspic hasdesc').exists?
+		achieved = $b.divs(:class, 'framed note haspic hasdesc')
+		title = achieved[0].div(:class, /title/).text.to_s
+		puts "Achievement unlocked: " + title.to_s
+		#$b.execute_script('Game.CloseNotes()') 
+		achieved[0].div(:class, /close/).click
 	end
 	# Are there any available upgrades?	
 	$upgrades = $b.divs(:class, 'product unlocked enabled')
@@ -82,7 +89,7 @@ def checkupgrades
 		# assigned via the onmouseover event handler.  Does Watir let us
 		# Target that?
 		$stats["powerup"] = $stats["powerup"].to_i + 1
-		puts "Purchasing powerup number " + $stats["powerup"].to_s + " after " + (Time.now - $initTime).to_s + " seconds since init!"
+		puts "Purchasing powerup number " + $stats["powerup"].to_s + " at " + sprintf('%.2f',(Time.now - $initTime)) + " seconds after start!"
 		$powerups[0].click if $powerups[0].exists?
 	end
 
@@ -92,7 +99,7 @@ def checkupgrades
 		upname = $upgrades[w].div(:class, /title/).text
 		upprice = $upgrades[w].span(:class, /price/).text.to_s
 		$stats["#{upname}"] = $stats["#{upname}"].to_i + 1
-		puts "Purchasing #{upname} number #{$stats[upname]} for #{upprice} cookies after " + (Time.now - $initTime).to_s + " seconds since init!"
+		puts "Purchasing #{upname} number #{$stats[upname]} for #{upprice} cookies at " + sprintf('%.2f',(Time.now - $initTime)) + " seconds after start!"
 		$upgrades[w].click if $upgrades[w].exists?
 		
 	end
