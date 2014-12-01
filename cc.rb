@@ -11,7 +11,7 @@
 
 #puts "Enter your Cookie-Click delay in milliseconds: "
 #int = gets.chomp
-int = 5
+int = 1000
 puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
@@ -81,9 +81,7 @@ def checkupgrades
 	# Achievements		
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		# old way
-		achieved = $b.divs(:class, 'framed note haspic hasdesc')
-		title = $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).exists?
-		puts (timenow + "Achievement unlocked: " + title)
+		puts (timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s)
 		$b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).click if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
 	end
 	# Are there any available upgrades?	
@@ -160,7 +158,7 @@ end
 
 ac(int)
 #$b.execute_script('Game.cookies = 1000000000000000')
-click 15
+#click 15
 puts timenow + "Cookie clicker initialized at " + $initTime.to_s
 #define main upgrade loop
 def gobot
