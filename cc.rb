@@ -11,7 +11,7 @@
 
 #puts "Enter your Cookie-Click delay in milliseconds: "
 #int = gets.chomp
-int = 100
+int = 5
 puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
@@ -80,11 +80,11 @@ def checkupgrades
 
 	# Achievements		
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
+		# old way
 		achieved = $b.divs(:class, 'framed note haspic hasdesc')
-		title = achieved[0].div(:class, /title/).text.to_s if achieved[0].div(:class, /title/).exists?
-		puts (timenow + "Achievement unlocked: " + title) if title
-		#$b.execute_script('Game.CloseNotes()') 
-		achieved[0].div(:class, /close/).click if achieved[0].div(:class, /close/).exists?
+		title = $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).exists?
+		puts (timenow + "Achievement unlocked: " + title)
+		$b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).click if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
 	end
 	# Are there any available upgrades?	
 	$upgrades = $b.divs(:class, 'product unlocked enabled')
@@ -96,14 +96,17 @@ def checkupgrades
 
 	# If there are powerups, buy them
 	if $powerups.size >= 1 then
+		mouseover = nil
+		decoded_mouseover = nil
+		powerup_name = nil
 		# Increment powerup count
 		$stats["powerup"] = $stats["powerup"].to_i + 1
-		# powerup name is stored in tooltip, assigned by mouseover
+		# powerup name is stored in tooltip, assigned by mouseover. HMMMM....
 		mouseover = $powerups[0].onmouseover if $powerups[0].exists?
 		# decode onmouseoer text
 		decoded_mouseover = CGI::unescape( mouseover ) if mouseover
 		# extract the name element
-		powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1] if decoded_mouseover
+		decoded_mouseover ? powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1] : "element not detected"
 		# log the powerup we're purchasing
 		puts timenow + "Power up #" + $stats["powerup"].to_s + ": '" + powerup_name + "' purchased!"
 		# ...and click it to actually do the thing we said we just did.
@@ -156,6 +159,8 @@ end
 # call the auto-clicker method
 
 ac(int)
+#$b.execute_script('Game.cookies = 1000000000000000')
+click 15
 puts timenow + "Cookie clicker initialized at " + $initTime.to_s
 #define main upgrade loop
 def gobot
