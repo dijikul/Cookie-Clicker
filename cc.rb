@@ -17,6 +17,7 @@ puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
 require 'cgi'
+require 'colorize'
 
 $b = Watir::Browser.start('http://orteil.dashnet.org/cookieclicker/')
 $b.execute_script('var autoClicker = 0;')
@@ -67,7 +68,7 @@ def timenow
 	puts sprintf('%.2f', minutes) + "m"
 	puts sprintf('%.2f', hours) + "h"
 =end
-	minutes > 1 ? "[ " + minutes.to_i.to_s + "m " + (seconds.to_i - (minutes.to_i * 60)).to_s.rjust(2, '0') + "s ] :: "  : "[ " + sprintf('%.1f', seconds) + "s ] :: "
+	minutes > 1 ? "[ " + minutes.to_i.to_s + "m " + (seconds.to_i - (minutes.to_i * 60)).to_s.rjust(2, '0') + "s " + "] :: "  : "[ " + sprintf('%.1f', seconds) + "s " + "] :: "
 
 end
 
@@ -82,10 +83,18 @@ def checkupgrades
 	# Achievements		
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		# old way
-		puts (timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).when_present.text.to_s)
-		if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
-			$b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).click  # 
+			# attempting to error handle some shit
+			if $b.divs(:class, 'framed note haspic hasdesc') #.first.div(:class, /title/)
+				puts (timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s)
+			end
+		#if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
+		begin	
+			$b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).when_present(1).click  # 
+		rescue => e
+			puts '*** ERROR: ' + e.to_s
 		end
+
+		#end
 	end
 	# Are there any available upgrades?	
 	$upgrades = $b.divs(:class, 'product unlocked enabled')
@@ -102,13 +111,24 @@ def checkupgrades
 		powerup_name = nil
 		# Increment powerup count
 		$stats["powerup"] = $stats["powerup"].to_i + 1
-		# powerup name is stored in tooltip, assigned by mouseover. HMMMM....
-		mouseover = $powerups[0].onmouseover if $powerups[0].exists?
-		# decode onmouseoer text
-		decoded_mouseover = CGI::unescape( mouseover ) if mouseover
 		
-		# extract the name element
-		decoded_mouseover ? powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1] : puts("*** element not detected")
+
+
+		# powerup name is stored in tooltip, assigned by mouseover. HMMMM....
+		if $powerups[0].exists?
+			begin
+				mouseover = $powerups[0].onmouseover 
+				# decode onmouseover text
+				decoded_mouseover = CGI::unescape( mouseover ) if mouseover		
+				# extract the name element from the decoded mouseover event
+				powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1]
+			rescue => e
+				puts '*** ERROR: ' + e.to_s
+			end		
+		end
+
+		# Old
+		#decoded_mouseover ? powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1] : puts("*** element not detected")
 		
 		# log the powerup we're purchasing
 		puts timenow + "Power up #" + $stats["powerup"].to_s + ": '" + powerup_name.to_s + "' purchased!"
