@@ -4,14 +4,15 @@
 #
 # Requires watir-webdriver 
 #
-# 2014 by jenksy 
-#
 #############################
-
 
 #puts "Enter your click delay in milliseconds: "
 #int = gets.chomp
-int = 50
+
+# if this is set to anything lower than about 100, Watir starts tripping up
+# on DOM elements that get renamed/repurposed.
+int = 1
+
 puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
@@ -82,7 +83,9 @@ def checkupgrades
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		# old way
 		puts (timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).when_present.text.to_s)
-		$b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).click if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
+		if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
+			$b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).click  # 
+		end
 	end
 	# Are there any available upgrades?	
 	$upgrades = $b.divs(:class, 'product unlocked enabled')
@@ -103,12 +106,16 @@ def checkupgrades
 		mouseover = $powerups[0].onmouseover if $powerups[0].exists?
 		# decode onmouseoer text
 		decoded_mouseover = CGI::unescape( mouseover ) if mouseover
+		
 		# extract the name element
-		decoded_mouseover ? powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1] : "element not detected"
+		decoded_mouseover ? powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1] : puts("*** element not detected")
+		
 		# log the powerup we're purchasing
-		puts timenow + "Power up #" + $stats["powerup"].to_s + ": '" + powerup_name + "' purchased!"
+		puts timenow + "Power up #" + $stats["powerup"].to_s + ": '" + powerup_name.to_s + "' purchased!"
 		# ...and click it to actually do the thing we said we just did.
-		$powerups[0].click if $powerups[0].exists?
+		if $powerups[0].exists?
+			$powerups[0].click 
+		end
 	end
 
 	# New upgrades algo
