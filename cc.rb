@@ -9,16 +9,16 @@
 #############################
 
 
-#puts "Enter your Cookie-Click delay in milliseconds: "
+#puts "Enter your click delay in milliseconds: "
 #int = gets.chomp
-int = 1000
+int = 100
 puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
 require 'cgi'
 
 $b = Watir::Browser.start('http://orteil.dashnet.org/cookieclicker/')
-
+$b.execute_script('var autoClicker = 0;')
 $cookies = Hash.new
 $stats = Hash.new
 $cookie = $b.div(:id, 'bigCookie')
@@ -46,10 +46,10 @@ end
 #      CHEATS     #
 ###################
 $b.execute_script("var autoClicker;")
-def ac(int) # auto cLicker
+def autoclick(int = 250) # auto clicker
 	$b.execute_script("autoClicker = setInterval(Game.ClickCookie, #{int});")	
 end
-def aco # auto click off
+def stopclick # auto click off
 	# Thg Doesn't actually work for some reason. need to debug
 	$b.execute_script('clearInterval(autoClicker);')
 end
@@ -156,7 +156,7 @@ end
 
 # call the auto-clicker method
 
-ac(int)
+autoclick(int)
 #$b.execute_script('Game.cookies = 1000000000000000')
 #click 15
 puts timenow + "Cookie clicker initialized at " + $initTime.to_s
