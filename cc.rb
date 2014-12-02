@@ -11,7 +11,7 @@
 
 #puts "Enter your click delay in milliseconds: "
 #int = gets.chomp
-int = 100
+int = 50
 puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
@@ -81,7 +81,7 @@ def checkupgrades
 	# Achievements		
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		# old way
-		puts (timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s)
+		puts (timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).when_present.text.to_s)
 		$b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).click if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
 	end
 	# Are there any available upgrades?	
@@ -117,7 +117,7 @@ def checkupgrades
 		# being that the more-advanced powerup will have larger yield,
 		# so purchase it first if there are more than one available.
 		w = $upgrades.size - 1
-		upname = $upgrades[w].div(:class, /title/).text if $upgrades[w].div(:class, /title/).exists?
+		upname = $upgrades[w].div(:class, /title/).when_present.text
 		upprice = $upgrades[w].span(:class, /price/).text.to_s if $upgrades[w].span(:class, /price/).exists?
 		
 		# increment this powerup's counter
