@@ -17,16 +17,21 @@ puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
 
 require 'watir-webdriver'
 require 'cgi'
-require 'colorize'
+#require 'colorize'
 
 $b = Watir::Browser.start('http://orteil.dashnet.org/cookieclicker/')
-$b.execute_script('var autoClicker = 0;')
-$cookies = Hash.new
-$stats = Hash.new
-$cookie = $b.div(:id, 'bigCookie')
+
+$cookies  = Hash.new
+$stats    = Hash.new
+upgrades  = Hash.new
 $initTime = Time.now
-upname = nil
-upgrades = Hash.new
+upname    = nil
+
+$cookie   = $b.div(:id, 'bigCookie')
+
+$b.execute_script('var autoClicker = 0;')
+
+
 
 def click(howManyTimes = 1)
 	howManyTimes.to_i.times do
@@ -62,14 +67,8 @@ def timenow
 	seconds = (Time.now - $initTime).to_f
 	minutes = (seconds/60)
 	hours = (seconds/3600)
-	
-=begin
-	puts sprintf('%.2f', seconds) + "s"
-	puts sprintf('%.2f', minutes) + "m"
-	puts sprintf('%.2f', hours) + "h"
-=end
-	minutes > 1 ? "[ " + minutes.to_i.to_s + "m " + (seconds.to_i - (minutes.to_i * 60)).to_s.rjust(2, '0') + "s " + "] :: "  : "[ " + sprintf('%.1f', seconds) + "s " + "] :: "
 
+	return "[ " + hours.to_i.to_s + ":" + (minutes.to_i- (hours.to_i * 60)).to_s.rjust(2, '0') + ":" + sprintf('%.3f', seconds - (minutes.to_i * 60) ).to_s.rjust(6, '0') + " ] :: "
 end
 
 
@@ -84,17 +83,23 @@ def checkupgrades
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		# old way
 			# attempting to error handle some shit
-			if $b.divs(:class, 'framed note haspic hasdesc') #.first.div(:class, /title/)
-				puts (timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s)
+			#if $b.divs(:class, 'framed note haspic hasdesc') #.first.div(:class, /title/)
+			begin
+				puts(timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s)
+			rescue => e
+				puts '*** ERROR *** ' + e.to_s
 			end
+
+
+		# the original way we were doin this is below, but it was 'sploding
 		#if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
-		begin	
+		begin 		# Error's are like pokemon.  Here's how we catch 'em
 			$b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).when_present(1).click  # 
 		rescue => e
-			puts '*** ERROR: ' + e.to_s
+			puts '*** ERROR *** ' + e.to_s
 		end
 
-		#end
+		
 	end
 	# Are there any available upgrades?	
 	$upgrades = $b.divs(:class, 'product unlocked enabled')
