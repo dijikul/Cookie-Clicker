@@ -12,8 +12,8 @@
 # if this is set to anything lower than about 100, Watir starts tripping up
 # on DOM elements that get renamed/repurposed.
 int = 1
-
-puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay!"
+launchtime = Time.now
+puts "Loading cookie clicker bot with a " + int.to_s + " millisecond delay..."
 
 require 'watir-webdriver'
 require 'cgi'
@@ -76,21 +76,18 @@ end
 # subtract 1 - indexes start at 0
 def checkupgrades
 
-
 	update_stats
 
-	# Achievements		
+	# Achievements first	
 	if $b.div(:class, 'framed note haspic hasdesc').exists?
 		# old way
-			# attempting to error handle some shit
-			#if $b.divs(:class, 'framed note haspic hasdesc') #.first.div(:class, /title/)
-			begin
-				puts(timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s)
-			rescue => e
-				puts '*** ERROR *** ' + e.to_s
-			end
-
-
+		# attempting to error handle some shit
+		#if $b.divs(:class, 'framed note haspic hasdesc') #.first.div(:class, /title/)
+		begin
+			puts(timenow + "Achievement unlocked: " + $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /title/).text.to_s)
+		rescue => e
+			puts '*** ERROR *** ' + e.to_s
+		end
 		# the original way we were doin this is below, but it was 'sploding
 		#if $b.divs(:class, 'framed note haspic hasdesc').first.div(:class, /close/).exists?
 		begin 		# Error's are like pokemon.  Here's how we catch 'em
@@ -98,9 +95,8 @@ def checkupgrades
 		rescue => e
 			puts '*** ERROR *** ' + e.to_s
 		end
-
-		
 	end
+
 	# Are there any available upgrades?	
 	$upgrades = $b.divs(:class, 'product unlocked enabled')
 	$powerups = $b.divs(:class, 'crate upgrade enabled')
@@ -111,13 +107,10 @@ def checkupgrades
 
 	# If there are powerups, buy them
 	if $powerups.size >= 1 then
+
 		mouseover = nil
 		decoded_mouseover = nil
 		powerup_name = nil
-		# Increment powerup count
-		$stats["powerup"] = $stats["powerup"].to_i + 1
-		
-
 
 		# powerup name is stored in tooltip, assigned by mouseover. HMMMM....
 		if $powerups[0].exists?
@@ -134,12 +127,13 @@ def checkupgrades
 
 		# Old
 		#decoded_mouseover ? powerup_name = decoded_mouseover.match(/<div class="name">([\w ]+)<\/div>/)[1] : puts("*** element not detected")
-		
-		# log the powerup we're purchasing
-		puts timenow + "Power up #" + $stats["powerup"].to_s + ": '" + powerup_name.to_s + "' purchased!"
 		# ...and click it to actually do the thing we said we just did.
 		if $powerups[0].exists?
+			# log the powerup we're purchasing
+			puts timenow + "Power up #" + $stats["powerup"].to_s + ": '" + powerup_name.to_s + "' purchased!"
 			$powerups[0].click 
+			# Increment powerup count
+			$stats["powerup"] = $stats["powerup"].to_i + 1
 		end
 	end
 
@@ -182,6 +176,9 @@ def quit?
     # (user hit CTRL-D)
     puts "Who hit CTRL-D, really?"
     true
+  rescue => error
+  	# everything else
+  	#puts "*** ERROR *** " + error.to_s
   end
 end
 
@@ -191,7 +188,7 @@ end
 autoclick(int)
 #$b.execute_script('Game.cookies = 1000000000000000')
 #click 15
-puts timenow + "Cookie clicker initialized at " + $initTime.to_s
+puts timenow + "Cookie Clicker initialized! Launch took " + (Time.now - launchtime).to_s + " seconds!"
 #define main upgrade loop
 def gobot
 	loop do
